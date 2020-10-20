@@ -23,7 +23,7 @@ categories = {
         }],
         "title": "Titles, Descriptions, and Authors",
         "subtitle": "Fiction",
-        "route": "collectables",
+        "route": "Fiction",
     },
     "Non-Fiction": {
         "products": [{
@@ -44,7 +44,7 @@ categories = {
         }],
         "title": "Titles, Descriptions, and Authors",
         "subtitle": "Non-Fiction",
-        "route": "collectables",
+        "route": "Non-Fiction",
     },
     "Action": {
         "products": [{
@@ -64,7 +64,7 @@ categories = {
         }],
         "title": "Titles, Descriptions, and Authors",
         "subtitle": "Action",
-        "route": "electronics",
+        "route": "Action",
     },
 }
 
