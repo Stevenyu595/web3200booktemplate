@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+  <div class="section">
+    <div class="row columns is-multiline">
+      <div class="column is-4">
+        <div class="card large">
+
+          <div class="card-content">
+            <div class="media">
+              <div class="media-content">
+                <p class="title is-4"> {{ product.title }}  </p>
+                <p class="subtitle is-6"> {{ product.author }} </p>
+              </div>
+            </div>
+            <div class="content">
+              <p class="subtitle is-6"> {{ product.description }} </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

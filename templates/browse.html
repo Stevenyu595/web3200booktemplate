@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<ul>
+    {% for name in categories %}
+    <li><a href="{{ url_for('index', name=name) }}">Browse</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}
+
+<h2>Fiction</h2>
+<h2>Non-Fiction</h2>
+<h2>Action</h2>

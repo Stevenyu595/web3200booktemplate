@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="is-size-1">{{ category.title }}</div>
+<div class="is-size-3">{{ category.subtitle }}</div>
+
+<ul>
+    {% for product in category.products %}
+    <li><a href="{{ url_for('product', category=category.route, id=(loop.index - 1)) }}">{{ product.title }}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}

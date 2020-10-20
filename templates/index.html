@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<ul>
+    {% for name in categories %}
+    <li><a href="{{ url_for('category', name=name) }}">{{ name | title }}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}
+
+<h1>Header</h1>
+<p>Deciding what to read next?</p>
+<p>What are your friends reading?</p>
+<p>Are you an author or a publisher?</p>
+
+

@@ -1,0 +1,46 @@
+{% include 'partials/header.html' %}
+
+<div class="container">
+  <div class="columns is-mobile is-centered">
+    <div class="column">
+      <nav class="navbar" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+          <a class="navbar-item" href="/">
+            <h1>Books</h1>
+          </a>
+        </div>
+        <div class="navbar-menu">
+          <div class="navbar-start">
+            <a class="navbar-item">
+              Daily Deals
+            </a>
+            <a class="navbar-item">
+              Brand Outlet
+            </a>
+            <a class="navbar-item">
+              Help & Contact
+            </a>
+          </div>
+
+          <div class="navbar-end">
+            <div class="navbar-item">
+              <div class="buttons">
+                <a class="button is-primary">
+                  <strong>Sign up</strong>
+                </a>
+                <a class="button is-light">
+                  Cart
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+      {% block content %}
+
+      {% endblock %}
+    </div>
+  </div>
+</div>
+
+{% include 'partials/footer.html' %}
