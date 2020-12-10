@@ -1,0 +1,28 @@
+{% extends 'admin/layout.html' %}
+{% block content %}
+<div class="card main">
+    <header class="card-header">
+        <p class="card-header-title">Authors</p>
+        <a href="{{ url_for('create_author') }}" class="card-header-icon" aria-label="create">
+            <span class="icon has-text-primary">
+                <i class="fas fa-lg fa-plus-circle" aria-hidden="true"></i>
+            </span>
+        </a>
+    </header>
+    <div class="card-content">
+        <div class="content">
+            <table class="table is-striped">
+                <tbody>
+                {% for author in authors %}
+                    <tr>
+                        <td>{{ author.name }}</td>
+                        <td><a href="{{ url_for('edit_author', id=author.id) }}" class="button is-small is-primary is-pulled-right">Edit</a></td>
+                        <td><a href="{{ url_for('delete_author', id=author.id) }}" class="button is-small is-danger is-pulled-right">Delete</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
