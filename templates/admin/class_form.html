@@ -1,0 +1,61 @@
+{% extends 'admin/layout.html' %}
+{% block content %}
+<div class="card edit">
+    <header class="card-header">
+        <p class="card-header-title">class_type</p>
+    </header>
+    <div class="card-content">
+        <div class="content">
+            {% for message in get_flashed_messages() %}
+                <div class="flash">{{ message }}</div>
+            {% endfor %}
+            <form method="POST">
+                <div class="field">
+                    <label class="label">Title</label>
+                    <div class="control">
+                        <input type="text" class="input" name="title" value="{{ title | default('') }}">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Category</label>
+                    <div class="control">
+                        <select name="category">
+                            {% for category in categories %}
+                                <option value="{{ category.id }}" name="category_id">{{ category.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Teacher</label>
+                    <div class="control">
+                        <select name="teacher">
+                            {% for teacher in teachers %}
+                                <option value="{{ teacher.id }}">{{ teacher.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Description</label>
+                    <div class="control">
+                        <input type="text" class="input" name="description" value="{{ description | default('') }}">
+                    </div>d
+                </div>
+
+                <div class="field is-grouped">
+                    <div class="control">
+                        <input type="submit" class="button is-link" value="Submit">
+                    </div>
+                    <div class="control">
+                        <a href="{{ url_for('admin_class_types') }}" class="button is-text">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

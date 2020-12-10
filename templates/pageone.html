@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<ul>
+    <h1>Header</h1>
+    <p>pageone</p>
+    {% for category in categories %}
+        <li><a href="{{ url_for('category', name=category.name) }}">{{ category.name | title }}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}
+
+<h1>Header</h1>
+<p>pageone</p>
+
+

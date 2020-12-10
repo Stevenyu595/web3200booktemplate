@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<h1>hello</h1>
+    <h1>{{ category.title }}</h1>
+    <div class="is-size-1">{{ category.subtitle }}</div>
+    <ul>
+        {% for class_type in class_types %}
+            <li><a href="{{ url_for('class_type', id=class_type.id) }}">{{ class_type.title }}</a></li>
+        {% endfor %}
+    </ul>
 
-<div class="is-size-1">{{ category.title }}</div>
-<div class="is-size-3">{{ category.subtitle }}</div>
-
-<ul>
-    {% for product in category.products %}
-    <li><a href="{{ url_for('product', category=category.route, id=(loop.index - 1)) }}">{{ product.title }}</a></li>
-    {% endfor %}
-</ul>
 {% endblock %}

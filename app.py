@@ -1,135 +1,336 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, abort, request, redirect, url_for, g, flash
+from datetime import datetime
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin, LoginManager, login_user, login_required, logout_user, current_user
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}/{}'.format(app.root_path, 'class_type.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'b2de7FkqvkMyqzNFzxCkgnPKIGP6i4Rc'
 
-categories = {
-    "Fiction": {
-        "products": [{
-            "title": "The Song of Achilles",
-            "description": "Divergent is the debut novel of American novelist Veronica Roth",
-            "author": "Veronica Roth",
-        }, {
-            "title": "The Handmaid's Tale",
-            "description": "The Handmaid's Tale is a dystopian novel[6] by Canadian author Margaret Atwood,"
-                           "published in 1985. It is set in a near-future New England, in a totalitarian state,"
-                           "known as Gilead, that has overthrown the United States government.",
-            "author": "Margaret Atwood",
-        }, {
-            "title": "The Nightingale",
-            "description": "The Nightingale (2015) is a novel by the American author Kristin Hannah."
-                           "The book tells the story of two sisters in France during World War II, and"
-                           "their struggle to survive and resist the German occupation of France.",
-            "author": "Kristin Hannah",
-        }],
-        "title": "Titles, Descriptions, and Authors",
-        "subtitle": "Fiction",
-        "route": "Fiction",
-    },
-    "Non-Fiction": {
-        "products": [{
-            "title": "A Brief history in Time",
-            "description": "The Maze Runner is a 2009 young adult dystopian science fiction novel",
-            "author": "James Dashner",
-        },{
-            "title": "H is for Hawk",
-            "description": "H is for Hawk tells Macdonald's story of the year she spent training a"
-                           "northern goshawk in the wake of her father's death.",
-            "author": "Helen Macdonald",
-        },{
-            "title": "In Cold Blood",
-            "description": "In Cold Blood is a non-fiction novel[1] by American author Truman Capote,"
-                           "first published in 1966; it details the 1959 murders of four members of the"
-                           "Herbert Clutter family in the small farming community of Holcomb, Kansas.",
-            "author": "Truman Capote",
-        }],
-        "title": "Titles, Descriptions, and Authors",
-        "subtitle": "Non-Fiction",
-        "route": "Non-Fiction",
-    },
-    "Action": {
-        "products": [{
-            "title": "The Maze Runner",
-            "description": "The Maze Runner is a 2009 young adult dystopian science fiction",
-            "author": "James Dashner",
-        },{
-            "title": "Divergent",
-            "description": "Divergent is the debut novel of American novelist Veronica Roth",
-            "author": "Veronica Roth",
-        },
-        {
-            "title": "Catching Fire",
-            "description": "Catching Fire is a 2009 science fiction young adult novel by "
-                           "the American novelist Suzanne Collins",
-            "author": "Suzanne Collins",
-        }],
-        "title": "Titles, Descriptions, and Authors",
-        "subtitle": "Action",
-        "route": "Action",
-    },
-}
+db = SQLAlchemy(app)
+
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
+    subtitle = db.Column(db.Text, nullable=False)
+
+class Teacher(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+
+class Class_type(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
+    category = db.relationship('Category', backref=db.backref('Class_type', lazy=True))
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=False)
+    teacher = db.relationship('Teacher', backref=db.backref('Class_type', lazy=True))
+    description = db.Column(db.Text, nullable=False)
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(100), unique=True)
+    password = db.Column(db.String(100))
+    name = db.Column(db.String(1000))
+
+db.create_all()
+
+login_manager = LoginManager()
+login_manager.login_view = 'login'
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 @app.route("/")
 def index():
+    categories = Category.query.all()
     return render_template("index.html", categories=categories)
 
 @app.route("/category/<name>")
 def category(name):
-    return render_template("category.html", category=categories[name])
-
-@app.route("/<category>/product/<int:id>")
-def product(category, id):
-    product = categories[category]["products"][id]
-    return render_template("product.html", product=product)
+    category = Category.query.filter(Category.name == name).first()
+    class_types = Class_type.query.join(Category).filter(Category.name == name)
+    return render_template("category.html", category=category, class_types=class_types)
 
 @app.route("/browse")
 def browse():
-    return render_template("browse.html")
+    categories = Category.query.all()
+    return render_template("browse.html", categories=categories)
 
-@app.route("/browse/fiction")
-def fiction():
-    return render_template("fiction.html")
+@app.route("/pageone")
+def pageone():
+    categories = Category.query.all()
+    return render_template("pageone.html", categories=categories)
 
-@app.route("/browse/fiction/thesongofachilles")
-def song():
-    return render_template("TheSongofAchilles.html")
+@app.route("/pagetwo")
+def pagetwo():
+    categories = Category.query.all()
+    return render_template("pagetwo.html", categories=categories)
 
-@app.route("/browse/fiction/thehandmaidstale")
-def maid():
-    return render_template("Thehandmaidstale.html")
+@app.route("/pagethree")
+def pagethree():
+    categories = Category.query.all()
+    return render_template("pagethree.html", categories=categories)
 
-@app.route("/browse/fiction/thenightingale")
-def night():
-    return render_template("thenightingale.html")
+@app.route("/pagefour")
+def pagefour():
+    categories = Category.query.all()
+    return render_template("pagefour.html", categories=categories)
 
-@app.route("/browse/nonfiction")
-def nonfiction():
-    return render_template("nonfiction.html")
+@app.route("/pagefive")
+def pagefive():
+    categories = Category.query.all()
+    return render_template("pagefive.html", categories=categories)
+@app.route('/login')
+def login():
+    return render_template('login.html')
 
-@app.route("/browse/nonfiction/abriefhistoryoftime")
-def history():
-    return render_template("Abriefhistoryoftime.html")
+@app.route('/login', methods=['POST'])
+def login_post():
+    email = request.form.get('email')
+    password = request.form.get('password')
+    remember = True if request.form.get('remember') else False
 
-@app.route("/browse/nonfiction/incoldblood")
-def blood():
-    return render_template("incoldblood.html")
+    user = User.query.filter_by(email=email).first()
 
-@app.route("/browse/nonfiction/hisforhawk")
-def hawk():
-    return render_template("Hisforhawk.html")
+    if not user or not check_password_hash(user.password, password):
+        flash('Please check your login credentials and try again.')
+        return redirect(url_for('login'))
 
-@app.route("/browse/action")
-def action():
-    return render_template("action.html")
+    login_user(user, remember=remember)
 
-@app.route("/browse/action/catchingfire")
-def catching():
-    return render_template("CatchingFire.html")
+    return redirect(url_for('admin_categories'))
 
-@app.route("/browse/action/themazerunner")
-def maze():
-    return render_template("TheMazeRunner.html")
+@app.route('/signup')
+def signup():
+    return render_template('signup.html')
 
-@app.route("/browse/action/divergent")
-def diver():
-    return render_template("Divergent.html")
+@app.route('/signup', methods=['POST'])
+def signup_post():
+    email = request.form.get('email')
+    name = request.form.get('name')
+    password = request.form.get('password')
+
+    user = User.query.filter_by(email=email).first()
+
+    if user:
+        return redirect(url_for('signup'))
+
+    new_user = User(email=email, name=name, password=generate_password_hash(password, method='sha256'))
+    db.session.add(new_user)
+    db.session.commit()
+
+    return redirect(url_for('login'))
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+@app.route("/class_type/<int:id>")
+def class_type(id):
+    class_type = Class_type.query.get_or_404(id)
+    return render_template("class_type.html", class_type=class_type)
+
+@app.route('/admin')
+@app.route('/admin/categories')
+@login_required
+def admin_categories():
+    categories = Category.query.all()
+    return render_template('admin/category.html', categories=categories)
+
+@app.route('/admin/category/new', methods=('GET', 'POST'))
+@login_required
+def create_category():
+    if request.method == 'POST':
+        name = request.form['name']
+        title = request.form['title']
+        subtitle = request.form['subtitle']
+
+        error = None
+
+        if not name:
+            error = 'Name is required.'
+
+        if error is None:
+            category = Category(name=name, title=title, subtitle=subtitle)
+            db.session.add(category)
+            db.session.commit()
+            return redirect(url_for('admin_categories'))
+        flash(error)
+
+    categories = Category.query.all()
+    return render_template('admin/category_form.html', categories=categories)
+
+@app.route('/admin/category/edit/<id>', methods=('GET', 'POST'))
+@login_required
+def edit_category(id):
+    category = Category.query.get_or_404(id)
+
+    if request.method == 'POST':
+        category.name = request.form['name']
+        category.title = request.form['title']
+        category.subtitle = request.form['subtitle']
+
+        error = None
+
+        if not request.form['name']:
+            error = 'Name is required.'
+
+        if error is None:
+            db.session.commit()
+            return redirect(url_for('admin_categories'))
+        flash(error)
+
+    return  render_template('admin/category_form.html', name=category.name, title=category.title, subtitle=category.subtitle)
+
+@app.route('/admin/category/delete/<id>')
+@login_required
+def delete_category(id):
+    category_to_delete = Category.query.get_or_404(id)
+
+    try:
+        db.session.delete(category_to_delete)
+        db.session.commit()
+        return redirect(url_for('admin_categories'))
+    except:
+        return "There was a problem deleting category"
+
+@app.route('/admin/class_types')
+@login_required
+def admin_class_types():
+    class_types = Class_type.query.all()
+    return render_template('admin/class_type.html', class_types=class_types)
+
+@app.route('/admin/class_type/new', methods=('GET', 'POST'))
+@login_required
+def create_class_type():
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        teacher_id = request.form['teacher']
+        category_id = request.form['category']
+        teacher = Teacher.query.get_or_404(teacher_id)
+        category = Category.query.get_or_404(category_id)
+
+        error = None
+
+        if not title:
+            error = 'Title is required.'
+
+        if error is None:
+            class_type = Class_type(category_id=category_id, category=category, title=title, teacher_id=teacher_id, teacher=teacher, description=description)
+            db.session.add(class_type)
+            db.session.commit()
+            return redirect(url_for('admin_class_types'))
+        flash(error)
+
+    class_types = Class_type.query.all()
+    teachers = Teacher.query.all()
+    categories = Category.query.all()
+    return render_template('admin/class_form.html', class_types=class_types, categories=categories, teachers=teachers)
+
+@app.route('/admin/class_type/edit/<id>', methods=('GET', 'POST'))
+@login_required
+def edit_class_type(id):
+    class_type = Class_type.query.get_or_404(id)
+
+    if request.method == 'POST':
+        class_type.title = request.form['title']
+        class_type.description = request.form['description']
+        class_type.teacher_id = request.form['teacher']
+        class_type.category_id = request.form['category']
+        class_type.teacher = Teacher.query.get_or_404(class_type.teacher_id)
+        class_type.category = Category.query.get_or_404(class_type.category_id)
+
+        error = None
+
+        if not class_type.title:
+            error = 'Title is required.'
+
+        if error is None:
+            db.session.commit()
+            return redirect(url_for('admin_class_types'))
+        flash(error)
+
+    class_types = Class_type.query.all()
+    teachers = Teacher.query.all()
+    categories = Category.query.all()
+    return render_template('admin/class_type_form.html', class_types=class_types, categories=categories, teachers=teachers, title=class_type.title, description=class_type.description, teacher=class_type.teacher, category=class_type.category)
+
+@app.route('/admin/class_type/delete/<id>')
+@login_required
+def delete_class_type(id):
+    class_type_to_delete = Class_type.query.get_or_404(id)
+
+    try:
+        db.session.delete(class_type_to_delete)
+        db.session.commit()
+        return redirect(url_for('admin_class_types'))
+    except:
+        return "There was a problem deleting class_type"
+
+@app.route('/admin/teachers')
+@login_required
+def admin_teachers():
+    teachers = Teacher.query.all()
+    return render_template('admin/teacher.html', teachers=teachers)
+
+@app.route('/admin/teacher/new', methods=('GET', 'POST'))
+@login_required
+def create_teacher():
+    if request.method == 'POST':
+        name = request.form['name']
+
+        error = None
+
+        if not name:
+            error = 'Name is required.'
+
+        if error is None:
+            teacher = Teacher(name=name)
+            db.session.add(teacher)
+            db.session.commit()
+            return redirect(url_for('admin_teachers'))
+        flash(error)
+
+    teachers = Teacher.query.all()
+    return render_template('admin/teacher_form.html', teachers=teachers)
+
+@app.route('/admin/teacher/edit/<id>', methods=('GET', 'POST'))
+@login_required
+def edit_teacher(id):
+    teacher = Teacher.query.get_or_404(id)
+
+    if request.method == 'POST':
+        teacher.name = request.form['name']
+
+        error = None
+
+        if not request.form['name']:
+            error = 'Name is required.'
+
+        if error is None:
+            db.session.commit()
+            return redirect(url_for('admin_teachers'))
+        flash(error)
+
+    return  render_template('admin/teacher_form.html', name=teacher.name)
+
+@app.route('/admin/teacher/delete/<id>')
+@login_required
+def delete_teacher(id):
+    teacher_to_delete = Teacher.query.get_or_404(id)
+
+    try:
+        db.session.delete(teacher_to_delete)
+        db.session.commit()
+        return redirect(url_for('admin_teachers'))
+    except:
+        return "There was a problem deleting teacher"
 

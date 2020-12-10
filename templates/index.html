@@ -2,8 +2,8 @@
 
 {% block content %}
 <ul>
-    {% for name in categories %}
-    <li><a href="{{ url_for('category', name=name) }}">{{ name | title }}</a></li>
+    {% for category in categories %}
+        <li><a href="{{ url_for('category', name=category.name) }}">{{ category.name | title }}</a></li>
     {% endfor %}
 </ul>
 {% endblock %}
